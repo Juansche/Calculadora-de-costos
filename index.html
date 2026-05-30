@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Costos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8f542;
+    --accent2: #f5a623;
+    --text: #f0f0f0;
+    --muted: #666;
+    --result-bg: #0f1a00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    display: grid;
+    gap: 24px;
+  }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #161616;
+  }
+
+  .section-num {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .section-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .field-row.trio {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .currency-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    padding: 10px 12px 10px 32px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200, 245, 66, 0.1);
+  }
+
+  input.no-prefix {
+    padding-left: 12px;
+  }
+
+  .unit-suffix {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+    align-self: end;
+    margin-bottom: 0;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .toggle-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .toggle-value {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* RESULTS */
+  .results {
+    background: var(--result-bg);
+    border: 1px solid #2a3d00;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .results-header {
+    background: #162000;
+    border-bottom: 1px solid #2a3d00;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .results-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .results-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .result-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 12px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+
+  .result-line:hover { background: rgba(200,245,66,0.04); }
+
+  .result-line .rl-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .result-line .rl-val {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .result-line.highlight .rl-label { color: #9ab83a; }
+  .result-line.highlight .rl-val { color: var(--accent); }
+
+  .divider {
+    height: 1px;
+    background: #2a3d00;
+    margin: 8px 0;
+  }
+
+  .price-final {
+    padding: 20px;
+    background: #1a2800;
+    border-top: 1px solid #2a3d00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .price-final .label {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .price-final .amount {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .margin-slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(200,245,66,0.2);
+  }
+
+  .pill {
+    background: rgba(200,245,66,0.12);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(200,245,66,0.3);
+  }
+
+  @media (max-width: 520px) {
+    .field-row { grid-template-columns: 1fr; }
+    .field-row.trio { grid-template-columns: 1fr 1fr; }
+    .unit-suffix { align-self: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>COST CALC</h1>
+  <p>Calculadora de precio de venta</p>
+</header>
+
+<div class="container">
+
+  <!-- 1. Costo base -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">Costo del producto (origen)</div>
+    </div>
+    <div class="section-body">
+      <div>
+        <label>Precio de compra en el exterior</label>
+        <div class="input-wrap">
+          <span class="currency-prefix">$</span>
+          <input type="number" id="costo_base" value="100" min="0" step="0.01">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Fletes -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">Fletes</div>
+    </div>
+    <div class="section-body">
+
+      <div>
+        <label>Flete interno (monto fijo)</label>
+        <div class="input-wrap">
+          <span class="currency-prefix">$</span>
+          <input type="number" id="flete_interno" value="15" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border)"></div>
+
+      <div class="field-row trio">
+        <div>
+          <label>Peso (kg)</label>
+          <input type="number" id="peso_kg" value="2" min="0" step="0.01" class="no-prefix" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:10px 12px;border-radius:8px;outline:none;width:100%;-moz-appearance:textfield;">
+        </div>
+        <div>
+          <label>Precio / kg</label>
+          <div class="input-wrap">
+            <span class="currency-prefix">$</span>
+            <input type="number" id="precio_por_kg" value="8" min="0" step="0.01">
+          </div>
+        </div>
+        <div>
+          <label>Flete internacional</label>
+          <div class="toggle-row" style="height:42px;margin-top:0">
+            <span class="toggle-label">Calculado</span>
+            <span class="toggle-value" id="display_flete_int">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. Impuestos -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Impuestos</div>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div>
+          <label>Impuesto a la Renta</label>
+          <div class="toggle-row">
+            <span class="toggle-label">Tasa</span>
+            <span class="toggle-value">10%</span>
+          </div>
+        </div>
+        <div>
+          <label>Calculado</label>
+          <div class="toggle-row">
+            <span class="toggle-label">IR</span>
+            <span class="toggle-value" id="display_ir">$0.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label>Impuesto al Valor Agregado (IVA)</label>
+          <div class="toggle-row">
+            <span class="toggle-label">Tasa</span>
+            <span class="toggle-value">10%</span>
+          </div>
+        </div>
+        <div>
+          <label>Calculado</label>
+          <div class="toggle-row">
+            <span class="toggle-label">IVA</span>
+            <span class="toggle-value" id="display_iva">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Instalación -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">Costo de instalación</div>
+    </div>
+    <div class="section-body">
+      <div>
+        <label>Costo de instalación (monto fijo)</label>
+        <div class="input-wrap">
+          <span class="currency-prefix">$</span>
+          <input type="number" id="costo_instalacion" value="0" min="0" step="0.01">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Comisión -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Comisión de venta</div>
+    </div>
+    <div class="section-body">
+      <div>
+        <label>Porcentaje de comisión (%)</label>
+        <input type="number" id="comision" value="5" min="0" max="100" step="0.1" class="no-prefix" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:10px 12px;border-radius:8px;outline:none;width:100%;-moz-appearance:textfield;transition:border-color .2s,box-shadow .2s;">
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Margen -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <div class="section-title">Margen de ganancia</div>
+    </div>
+    <div class="section-body">
+      <div class="margin-slider-wrap">
+        <div class="slider-top">
+          <label style="margin:0">Margen sobre costo total</label>
+          <span class="pill" id="margen_label">20%</span>
+        </div>
+        <input type="range" id="margen" min="0" max="200" value="20" step="1">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span>0%</span><span>50%</span><span>100%</span><span>150%</span><span>200%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results">
+    <div class="results-header">
+      <div class="section-num" style="background:var(--accent)">✓</div>
+      <h2>Desglose de costos</h2>
+    </div>
+    <div class="results-body">
+      <div class="result-line">
+        <span class="rl-label">Costo del producto</span>
+        <span class="rl-val" id="r_base">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span class="rl-label">+ Flete interno</span>
+        <span class="rl-val" id="r_flete_int">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span class="rl-label">+ Flete internacional</span>
+        <span class="rl-val" id="r_flete_ext">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span class="rl-label">+ Costo de instalación</span>
+        <span class="rl-val" id="r_instalacion">$0.00</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-line highlight">
+        <span class="rl-label">= Costo logístico</span>
+        <span class="rl-val" id="r_log">$0.00</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-line">
+        <span class="rl-label">+ Impuesto a la Renta (10%)</span>
+        <span class="rl-val" id="r_ir">$0.00</span>
+      </div>
+      <div class="result-line">
+        <span class="rl-label">+ IVA (10%)</span>
+        <span class="rl-val" id="r_iva">$0.00</span>
+      </div>
+      <div class="result-line highlight">
+        <span class="rl-label">= Costo con impuestos</span>
+        <span class="rl-val" id="r_imp">$0.00</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-line">
+        <span class="rl-label">+ Comisión de venta</span>
+        <span class="rl-val" id="r_com">$0.00</span>
+      </div>
+      <div class="result-line highlight">
+        <span class="rl-label">= Costo total</span>
+        <span class="rl-val" id="r_total">$0.00</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-line">
+        <span class="rl-label">+ Margen (<span id="r_margen_pct">20</span>%)</span>
+        <span class="rl-val" id="r_margen">$0.00</span>
+      </div>
+    </div>
+    <div class="price-final">
+      <span class="label">Precio de venta sugerido</span>
+      <span class="amount" id="r_precio_final">$0.00</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = v => '$' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  function calc() {
+    const base = parseFloat(document.getElementById('costo_base').value) || 0;
+    const flete_int = parseFloat(document.getElementById('flete_interno').value) || 0;
+    const peso = parseFloat(document.getElementById('peso_kg').value) || 0;
+    const precio_kg = parseFloat(document.getElementById('precio_por_kg').value) || 0;
+    const comision_pct = parseFloat(document.getElementById('comision').value) || 0;
+    const margen_pct = parseFloat(document.getElementById('margen').value) || 0;
+    const instalacion = parseFloat(document.getElementById('costo_instalacion').value) || 0;
+
+    const flete_ext = peso * precio_kg;
+    const costo_log = base + flete_int + flete_ext + instalacion;
+
+    const ir = costo_log * 0.10;
+    const iva = costo_log * 0.10;
+    const costo_imp = costo_log + ir + iva;
+
+    const comision = costo_imp * (comision_pct / 100);
+    const costo_total = costo_imp + comision;
+
+    const margen = costo_total * (margen_pct / 100);
+    const precio_final = costo_total + margen;
+
+    // Update display inputs
+    document.getElementById('display_flete_int').textContent = fmt(flete_ext);
+    document.getElementById('display_ir').textContent = fmt(ir);
+    document.getElementById('display_iva').textContent = fmt(iva);
+
+    // Update results
+    document.getElementById('r_base').textContent = fmt(base);
+    document.getElementById('r_flete_int').textContent = fmt(flete_int);
+    document.getElementById('r_flete_ext').textContent = fmt(flete_ext);
+    document.getElementById('r_instalacion').textContent = fmt(instalacion);
+    document.getElementById('r_log').textContent = fmt(costo_log);
+    document.getElementById('r_ir').textContent = fmt(ir);
+    document.getElementById('r_iva').textContent = fmt(iva);
+    document.getElementById('r_imp').textContent = fmt(costo_imp);
+    document.getElementById('r_com').textContent = fmt(comision);
+    document.getElementById('r_total').textContent = fmt(costo_total);
+    document.getElementById('r_margen_pct').textContent = margen_pct;
+    document.getElementById('r_margen').textContent = fmt(margen);
+    document.getElementById('r_precio_final').textContent = fmt(precio_final);
+  }
+
+  document.getElementById('margen').addEventListener('input', function() {
+    document.getElementById('margen_label').textContent = this.value + '%';
+    calc();
+  });
+
+  // Style focus for non-wrapped inputs
+  ['peso_kg','comision','costo_instalacion'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('focus', () => {
+      el.style.borderColor = 'var(--accent)';
+      el.style.boxShadow = '0 0 0 3px rgba(200,245,66,0.1)';
+    });
+    el.addEventListener('blur', () => {
+      el.style.borderColor = 'var(--border)';
+      el.style.boxShadow = 'none';
+    });
+  });
+
+  document.querySelectorAll('input').forEach(el => el.addEventListener('input', calc));
+  calc();
+</script>
+</body>
+</html>
